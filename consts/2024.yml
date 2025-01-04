@@ -1,0 +1,29 @@
+global:
+  c_year: 2024
+  c_f1040_16_ws_b1: 0.22
+  c_f1040_16_ws_b2: 0.24
+  c_f1040_16_ws_b3: 0.32
+  c_f1040_16_ws_b4: 0.35
+  c_f1040_16_ws_b5: 0.37
+
+# s = Single
+# j = Married filing jointly
+# p = Married filing separately (MFS)
+# h = Head of household (HOH)
+# q = Qualifying surviving spouse (QSS)
+f_filing_status:
+  # Standard Deduction for ...
+  c_f1040_12_sd: {sp: 14600, jq: 29200, p: 14600}
+
+  # 2024 Tax Computation Worksheet-Line 16
+  c_f1040_16_ws_t1: {s: 100000, jq: 100000, p: 100000, h: 100000}
+  c_f1040_16_ws_t2: {s: 100525, jq: 201050, p: 100525, h: 100500}
+  c_f1040_16_ws_t3: {s: 191950, jq: 383900, p: 191950, h: 191950}
+  c_f1040_16_ws_t4: {s: 243725, jq: 487450, p: 243725, h: 243700}
+  c_f1040_16_ws_t5: {s: 609350, jq: 731200, p: 365600, h: 609350}
+  c_f1040_16_ws_d1: {s: 4947.00, jq: 9894.00, p: 4947.00, h: 6641.00}
+  c_f1040_16_ws_d2: {s: 6957.50, jq: 13915.00, p: 6957.50, h: 8651.00}
+  c_f1040_16_ws_d3: {s: 22313.50, jq: 44627.00, p: 22313.50, h: 24007.00}
+  c_f1040_16_ws_d4: {s: 29625.25, jq: 59250.50, p: 29625.25, h: 31318.00}
+  c_f1040_16_ws_d5: {s: 41812.25, jq: 73874.50, p: 36937.25, h: 43505.00}
+
