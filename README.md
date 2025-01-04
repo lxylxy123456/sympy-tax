@@ -18,8 +18,8 @@ In `input.yml`, enter your information.
 
 Run the script: `python3 main.py [arguments]`, where arguments are:
 * `-f`: change filing status, e.g. single, mfj, hoh, mfs, qss.
-* `-c`: override default consts file of `input.yml`.
-* `-i`: override default input file of `consts/2024.yml`.
+* `-c`: override default consts file of `consts/2024.yml`.
+* `-i`: override default input file of `input.yml`.
 * `--plot`: Plot some kind of tax rate graph.
 
 Example: `python3 main.py -f mfj -c my_input.yml`
