@@ -25,7 +25,7 @@ Run the script: `python3 main.py [arguments]`, where arguments are:
   treated as variables.
 * `--plot`: Plot some kind of tax rate graph.
 
-Example: `python3 main.py -f mfj -c my_input.yml`
+Example: `python3 main.py -f mfj -i my_input.yml`
 
 ## Demo
 
