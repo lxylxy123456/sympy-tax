@@ -30,7 +30,8 @@ def tax_computation_worksheet(g, ti):
 		(ti * g('c_f1040_16_ws_b4') - g('c_f1040_16_ws_d4'),
 		 (ti >= g('c_f1040_16_ws_t4')) & (ti < g('c_f1040_16_ws_t5'))),
 		(ti * g('c_f1040_16_ws_b5') - g('c_f1040_16_ws_d5'),
-		 (ti >= g('c_f1040_16_ws_t5'))))
+		 (ti >= g('c_f1040_16_ws_t5'))),
+		(0, True))
 	c = ti >= g('c_f1040_16_ws_t1')
 	return v, c
 
@@ -52,7 +53,8 @@ def compute_f1040_qdcgtw(e):
 		_qv, _qc= ge('v_f1040_16_qdcgtw_3_file_d')
 		_v = Piecewise(
 			(Min(_d15v, _d16v), _qv >= 1),
-			(_7v, _qv <= 0))
+			(_7v, _qv <= 0),
+			(0, True))
 		_c = _qc & (((_qv >= 1) & _d15c & _d16c) | ((_qv <= 0) & _7c))
 		return _v, _c
 	@e.ded
@@ -169,7 +171,8 @@ def compute_f1040(e):
 		_21v, _21c = gc('v_f1040sd_21')
 		v = Piecewise(
 			(_16v, _16c & (_16v >= 0)),
-			(_21v, _21c))
+			(_21v, _21c),
+			(0, True))
 		c = (_16c & (_16v >= 0)) | _21c
 		return v, c
 	e.di('v_f1040_8')

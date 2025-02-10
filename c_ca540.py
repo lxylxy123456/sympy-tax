@@ -92,7 +92,7 @@ def compute_ca540(e):
 			if i != 9:
 				_c &= _ti < g('c_ca540_31_trs_t%d' % (i + 1))
 			args.append((_v, _c))
-		v = Piecewise(*args)
+		v = Piecewise(*args, (0, True))
 		c = _ti >= g('c_ca540_31_trs_t1')
 		return v, c
 	@e.ded
@@ -232,7 +232,7 @@ def compute_ca540(e):
 		_bv = _1v - _99v
 		_bc = (_1v > _99v) & _99c & _1c
 		# Combine case a and b above (Note: this Piecewise seems to be slow).
-		_v = Piecewise((_av, _ac), (_bv, _bc))
+		_v = Piecewise((_av, _ac), (_bv, _bc), (0, True))
 		_c = Xor(_ac, _bc)
 		return _v, _c
 

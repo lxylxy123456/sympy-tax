@@ -162,13 +162,17 @@ def main():
 	parser.add_argument('-c', '--consts-file', default='consts/2024.yml')
 	parser.add_argument('-i', '--input-file', default='input.yml')
 	parser.add_argument('-v', '--verbose', action='store_true')
+	parser.add_argument('--variable-inputs',
+						help='comma-separated input names that may vary')
 	parser.add_argument('--plot', action='store_true')
 	args = parser.parse_args()
 
 	e = Equation()
-	if 'fixed inputs':
-		# e.g. {'v_f1040_1a'}
-		e.set_variable_fixed_inputs(set(), get_inputs(args.input_file))
+	# e.g. {'v_f1040_1a'}
+	variable_inputs = set()
+	if args.variable_inputs:
+		variable_inputs = args.variable_inputs.split(',')
+	e.set_variable_fixed_inputs(variable_inputs, get_inputs(args.input_file))
 	compute_consts(e, args.consts_file, args.filing_status, args.filing_status)
 	compute_f1040(e)
 	compute_ca540(e)
@@ -199,7 +203,7 @@ def main():
 		# TODO: plotting does not implement condition check yet.
 		from sympy import plot
 		x = e.g('v_f1040_1a')[0]
-		del inputs['v_f1040_1a']
+		del inputs[symbols('v_f1040_1a')]
 		y = (e.g('v_f1040_16')[0] / e.g('v_f1040_15')[0]).subs(inputs.items())
 		print(repr(y).replace('v_f1040_1a', 'x'))
 		plot(y, (x, 0, 1000000))
