@@ -20,6 +20,9 @@ Run the script: `python3 main.py [arguments]`, where arguments are:
 * `-f`: change filing status, e.g. single, mfj, hoh, mfs, qss.
 * `-c`: override default consts file of `consts/2024.yml`.
 * `-i`: override default input file of `input.yml`.
+* `-v`: print equations in addition to numeric values.
+* `--variable-inputs`: comma-separated list of input names that should be
+  treated as variables.
 * `--plot`: Plot some kind of tax rate graph.
 
 Example: `python3 main.py -f mfj -c my_input.yml`
