@@ -14,6 +14,14 @@
 #	You should have received a copy of the GNU General Public License
 #	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-PyYAML
-sympy
+def compute_f1040sb(e):
+	# 1040 Schedule B - Part I Interest
+	e.di('v_f1040sb_2')
+	e.di('v_f1040sb_3')
+	@e.ded
+	def v_f1040sb_4(g):
+		return g('v_f1040sb_2') - g('v_f1040sb_3'), True
+
+	# 1040 Schedule B - Part II Ordinary Dividends
+	e.di('v_f1040sb_6')
 

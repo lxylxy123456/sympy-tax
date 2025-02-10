@@ -14,26 +14,35 @@
 #	You should have received a copy of the GNU General Public License
 #	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import argparse
+import argparse, functools
 
 import yaml, sympy
-from sympy import Eq, Max, Piecewise, nan, symbols
+from sympy import symbols
 from sympy.logic.boolalg import BooleanTrue, BooleanFalse
 
-def get_consts(file_name, f_filing_status):
-	f_fs = {
+from c_f1040 import compute_f1040
+from c_ca540 import compute_ca540
+
+def get_consts(file_name, f_filing_status, c_filing_status):
+	fs_translate = lambda x: {
 		's': 's', 'single': 's',
 		'j': 'j', 'mfj': 'j', 'married filing jointly': 'j',
 		'h': 'h', 'hoh': 'h', 'head of household': 'h',
 		'p': 'p', 'mfs': 'p', 'married filing separately': 'p',
 		'q': 'q', 'qss': 'q', 'qualifying surviving spouse': 'q',
-	}[f_filing_status.lower().replace('_', ' ').replace('-', ' ')]
+	}[x.lower().replace('_', ' ').replace('-', ' ')]
+	f_fs = fs_translate(f_filing_status)
+	c_fs = fs_translate(c_filing_status)
 	assert f_fs in ['s', 'j', 'h', 'p', 'q']
 	data = yaml.load(open(file_name), yaml.Loader)
 	for k, v in data['global'].items():
 		yield k, v
 	for k, v in data['f_filing_status'].items():
 		vv = list(filter(lambda x: f_fs in x[0], v.items()))
+		assert len(vv) == 1
+		yield k, next(iter(vv))[1]
+	for k, v in data['c_filing_status'].items():
+		vv = list(filter(lambda x: c_fs in x[0], v.items()))
 		assert len(vv) == 1
 		yield k, next(iter(vv))[1]
 
@@ -48,18 +57,32 @@ class Equation:
 		self.consts = []
 		# List of equation names.
 		self.equations = []
-		# Dict as {'name': default}.
+		# Dict as {symbol: default}.
 		self.inputs = {}
+		# Set as {'name'}, for inputs that need to be kept as variable.
+		self.variable_inputs = set()
+		# Dict as {'name': value}, for inputs that do not have default values.
+		self.fixed_inputs = {}
+
+	def set_variable_fixed_inputs(self, variable_inputs, fixed_inputs):
+		self.variable_inputs = variable_inputs
+		self.fixed_inputs = fixed_inputs
 
 	def _set_symbol(self, name, value, condition):
 		assert isinstance(value, sympy.core.basic.Basic)
 		assert isinstance(condition, sympy.core.basic.Basic)
+		assert name not in self.symbols
 		self.symbols[name] = (value, condition)
 
 	def define_input(self, name, default=0, condition=BooleanTrue()):
 		assert name not in self.inputs
-		self.inputs[name] = default
-		self._set_symbol(name, symbols(name), condition)
+		assert name not in self.symbols
+		if name not in self.variable_inputs:
+			sn = sympy.core.numbers.Number(self.fixed_inputs.get(name, default))
+		else:
+			sn = symbols(name)
+		self.inputs[sn] = default
+		self._set_symbol(name, sn, condition)
 	def di(self, *args, **kwargs):
 		return self.define_input(*args, **kwargs)
 
@@ -96,151 +119,41 @@ class Equation:
 	def ded(self, *args, **kwargs):
 		return self.define_equation_decorator(*args, **kwargs)
 
+	def define_equation_decorator2(self, func):
+		name = func.__code__.co_name
+		def _get_symbol_condition(name):
+			nonlocal condition
+			v, c = self.get_symbol(name)
+			return v, c
+		value, condition = func(_get_symbol_condition)
+		self.define_equation(name, value, condition)
+	def ded2(self, *args, **kwargs):
+		return self.define_equation_decorator2(*args, **kwargs)
+
 	def get_symbol(self, name):
 		return self.symbols[name]
 	def g(self, *args, **kwargs):
 		return self.get_symbol(*args, **kwargs)
 
-def compute_consts(e, file_name, f_filing_status):
-	for k, v in get_consts(file_name, f_filing_status):
+def compute_consts(e, file_name, f_filing_status, c_filing_status):
+	for k, v in get_consts(file_name, f_filing_status, c_filing_status):
 		e.dc(k, v)
 
-def compute_1040(e):
-	# 1040 - Income
-	e.di('v_f1040_1a')
-	e.di('v_f1040_1b')
-	e.di('v_f1040_1c')
-	e.di('v_f1040_1d')
-	e.di('v_f1040_1e')
-	e.di('v_f1040_1f')
-	e.di('v_f1040_1g')
-	e.di('v_f1040_1h')
-	e.di('v_f1040_1i')
-	@e.ded
-	def v_f1040_1z(g):
-		return sum([
-			g('v_f1040_1a'),
-			g('v_f1040_1b'),
-			g('v_f1040_1c'),
-			g('v_f1040_1d'),
-			g('v_f1040_1e'),
-			g('v_f1040_1f'),
-			g('v_f1040_1g'),
-			g('v_f1040_1h'),
-			g('v_f1040_1i'),
-		]), True
-	e.di('v_f1040_2a')
-	e.di('v_f1040_2b')
-	e.di('v_f1040_3a')
-	e.di('v_f1040_3b')
-	e.di('v_f1040_4a')
-	e.di('v_f1040_4b')
-	e.di('v_f1040_5a')
-	e.di('v_f1040_5b')
-	e.di('v_f1040_6a')
-	e.di('v_f1040_6b')
-	e.di('v_f1040_7')
-	e.di('v_f1040_8')
-	@e.ded
-	def v_f1040_9(g):
-		return sum([
-			g('v_f1040_1z'),
-			g('v_f1040_2b'),
-			g('v_f1040_3b'),
-			g('v_f1040_4b'),
-			g('v_f1040_5b'),
-			g('v_f1040_6b'),
-			g('v_f1040_7'),
-			g('v_f1040_8'),
-		]), True
-	e.di('v_f1040_10')
-	@e.ded
-	def v_f1040_11(g):
-		return g('v_f1040_9') - g('v_f1040_10'), True
-	@e.ded
-	def v_f1040_12(g):
-		return g('c_f1040_12_sd'), True
-	e.di('v_f1040_13')
-	@e.ded
-	def v_f1040_14(g):
-		return g('v_f1040_12') - g('v_f1040_13'), True
-	@e.ded
-	def v_f1040_15(g):
-		return Max(g('v_f1040_11') - g('v_f1040_14'), 0), True
-
-	# 1040 - Tax and Credits
-	@e.ded
-	def v_f1040_16(g):
-		_ti = g('v_f1040_15')
-		# Note: this is only implementing the 2024 Tax Computation Worksheet.
-		v = Piecewise(
-			(_ti * g('c_f1040_16_ws_b1') - g('c_f1040_16_ws_d1'),
-			 (_ti >= g('c_f1040_16_ws_t1')) & (_ti < g('c_f1040_16_ws_t2'))),
-			(_ti * g('c_f1040_16_ws_b2') - g('c_f1040_16_ws_d2'),
-			 (_ti >= g('c_f1040_16_ws_t2')) & (_ti < g('c_f1040_16_ws_t3'))),
-			(_ti * g('c_f1040_16_ws_b3') - g('c_f1040_16_ws_d3'),
-			 (_ti >= g('c_f1040_16_ws_t3')) & (_ti < g('c_f1040_16_ws_t4'))),
-			(_ti * g('c_f1040_16_ws_b4') - g('c_f1040_16_ws_d4'),
-			 (_ti >= g('c_f1040_16_ws_t4')) & (_ti < g('c_f1040_16_ws_t5'))),
-			(_ti * g('c_f1040_16_ws_b5') - g('c_f1040_16_ws_d5'),
-			 (_ti >= g('c_f1040_16_ws_t5'))))
-		c = _ti >= g('c_f1040_16_ws_t1')
-		return v, c
-	e.di('v_f1040_17')
-	@e.ded
-	def v_f1040_18(g):
-		return g('v_f1040_16') + g('v_f1040_17'), True
-	e.di('v_f1040_19')
-	e.di('v_f1040_20')
-	@e.ded
-	def v_f1040_21(g):
-		return g('v_f1040_19') + g('v_f1040_20'), True
-	@e.ded
-	def v_f1040_24(g):
-		return Max(g('v_f1040_18') - g('v_f1040_21'), 0), True
-
-	# 1040 - Payments
-	e.di('v_f1040_25a')
-	e.di('v_f1040_25b')
-	e.di('v_f1040_25c')
-	@e.ded
-	def v_f1040_25d(g):
-		return g('v_f1040_25a') + g('v_f1040_25b') + g('v_f1040_25c'), True
-	e.di('v_f1040_26')
-	e.di('v_f1040_27')
-	e.di('v_f1040_28')
-	e.di('v_f1040_29')
-	e.di('v_f1040_31')
-	@e.ded
-	def v_f1040_32(g):
-		return sum([
-			g('v_f1040_27'),
-			g('v_f1040_28'),
-			g('v_f1040_29'),
-			g('v_f1040_31'),
-		]), True
-	@e.ded
-	def v_f1040_33(g):
-		return g('v_f1040_25d') + g('v_f1040_26') + g('v_f1040_32'), True
-
-	# 1040 - Refund
-	@e.ded
-	def v_f1040_34(g):
-		_24 = g('v_f1040_24')
-		_33 = g('v_f1040_33')
-		return _33 - _24, _33 > _24
-
-	# 1040 - Amount You Owe
-	@e.ded
-	def v_f1040_37(g):
-		_24 = g('v_f1040_24')
-		_33 = g('v_f1040_33')
-		return _24 - _33, _33 < _24
+@functools.cache
+def get_inputs(input_file):
+	inputs = {}
+	for k, v in yaml.load(open(input_file), yaml.Loader).items():
+		if type(v) == list:
+			value = sum(v, start=sympy.core.numbers.Number(0))
+		else:
+			value = sympy.core.numbers.Number(v)
+		inputs[k] = value
+	return inputs
 
 def format_exp(e):
 	s = repr(e)
 	if len(s) > 60:
-		s = s[:60] + '...'
+		s = s[:60] + '...' + ' (%d)' % len(s)
 	return s
 
 def main():
@@ -248,28 +161,39 @@ def main():
 	parser.add_argument('-f', '--filing-status', default='single')
 	parser.add_argument('-c', '--consts-file', default='consts/2024.yml')
 	parser.add_argument('-i', '--input-file', default='input.yml')
+	parser.add_argument('-v', '--verbose', action='store_true')
 	parser.add_argument('--plot', action='store_true')
 	args = parser.parse_args()
 
-	args.consts_file
 	e = Equation()
-	compute_consts(e, args.consts_file, args.filing_status)
-	compute_1040(e)
+	if 'fixed inputs':
+		# e.g. {'v_f1040_1a'}
+		e.set_variable_fixed_inputs(set(), get_inputs(args.input_file))
+	compute_consts(e, args.consts_file, args.filing_status, args.filing_status)
+	compute_f1040(e)
+	compute_ca540(e)
 	inputs = e.inputs.copy()
-	inputs.update(yaml.load(open(args.input_file), yaml.Loader))
+	for k, v in get_inputs(args.input_file).items():
+		inputs[e.g(k)[0]] = v
 	for i in e.equations:
 		v, c = e.g(i)
-		print(i, '=', format_exp(v))
-		if c != True:
-			print(' ' * len(i), '  if', format_exp(c))
-		cs = c.subs(inputs.items())
+		print(i, '=', end=' ')
+		if args.verbose:
+			print(format_exp(v))
+			if c != True:
+				print(' ' * len(i), '  if', format_exp(c))
+			print(' ' * len(i), '=', end=' ')
+		# Using xreplace because subs is slow.
+		# https://github.com/sympy/sympy/issues/22240
+		cs = c.xreplace(inputs)
 		if cs == True:
-			print(' ' * len(i), '=', v.subs(inputs.items()))
+			print(v.xreplace(inputs))
 		elif cs == False:
-			print(' ' * len(i), '=', 'undefined')
+			print('undefined')
 		else:
 			raise RuntimeError('Cannot evaluate condition')
-		print()
+		if args.verbose:
+			print()
 
 	if args.plot:
 		# TODO: plotting does not implement condition check yet.
