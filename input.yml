@@ -21,6 +21,8 @@ v_f1040sd_1a_e: 5
 # Long term
 v_f1040sd_8a_d: 10000
 v_f1040sd_8a_e: 10
+# Are you filing Schedule D?
+v_f1040_16_qdcgtw_3_file_d: 1
 
 # ChatGPT's reply:
 #

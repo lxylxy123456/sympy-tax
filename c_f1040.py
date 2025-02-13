@@ -221,8 +221,12 @@ def compute_f1040(e):
 	def v_f1040_21(g):
 		return g('v_f1040_19') + g('v_f1040_20'), True
 	@e.ded
-	def v_f1040_24(g):
+	def v_f1040_22(g):
 		return Max(g('v_f1040_18') - g('v_f1040_21'), 0), True
+	e.di('v_f1040_23')
+	@e.ded
+	def v_f1040_24(g):
+		return g('v_f1040_22') + g('v_f1040_23'), True
 
 	# 1040 - Payments
 	e.di('v_f1040_25a')
