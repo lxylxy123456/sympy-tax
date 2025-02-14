@@ -69,7 +69,7 @@ def compute_ca540(e):
 		return g('v_ca540ca_I_C_27_C'), True
 	@e.ded
 	def v_ca540_17(g):
-		return g('v_ca540_15') - g('v_ca540_16'), True
+		return g('v_ca540_15') + g('v_ca540_16'), True
 	@e.ded
 	def v_ca540_18(g):
 		return Max(g('v_ca540ca_II_30'), g('c_ca540_18_sd')), True
