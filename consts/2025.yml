@@ -1,0 +1,105 @@
+#	sympy-tax - Using sympy to compute tax as an equation
+#	Copyright (C) 2024-2026  lxylxy123456
+#
+#	This program is free software: you can redistribute it and/or modify
+#	it under the terms of the GNU General Public License as published by
+#	the Free Software Foundation, either version 3 of the License, or
+#	(at your option) any later version.
+#
+#	This program is distributed in the hope that it will be useful,
+#	but WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#	GNU General Public License for more details.
+#
+#	You should have received a copy of the GNU General Public License
+#	along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+global:
+  c_year: 2025
+
+# s = Single
+# j = Married filing jointly
+# p = Married filing separately (MFS)
+# h = Head of household (HOH)
+# q = Qualifying surviving spouse (QSS)
+f_filing_status:
+  # Standard Deduction for ...
+  c_f1040_12_sd: {sp: 15750, jq: 31500, h: 23625}
+
+  # 2025 Tax Computation Worksheet-Line 16
+  c_f1040_16_ws_t1: {s: 100000, jq: 100000, p: 100000, h: 100000}
+  c_f1040_16_ws_t2: {s: 103350, jq: 206700, p: 103350, h: 103350}
+  c_f1040_16_ws_t3: {s: 197300, jq: 394600, p: 197300, h: 197300}
+  c_f1040_16_ws_t4: {s: 250525, jq: 501050, p: 250525, h: 250500}
+  c_f1040_16_ws_t5: {s: 626350, jq: 751600, p: 375800, h: 626350}
+  c_f1040_16_ws_b1: {sjphq: 0.22}
+  c_f1040_16_ws_b2: {sjphq: 0.24}
+  c_f1040_16_ws_b3: {sjphq: 0.32}
+  c_f1040_16_ws_b4: {sjphq: 0.35}
+  c_f1040_16_ws_b5: {sjphq: 0.37}
+  c_f1040_16_ws_d1: {s: 5086.00, jq: 10172.00, p: 5086.00, h: 6825.00}
+  c_f1040_16_ws_d2: {s: 7153.00, jq: 14306.00, p: 7153.00, h: 8892.00}
+  c_f1040_16_ws_d3: {s: 22937.00, jq: 45874.00, p: 22937.00, h: 24676.00}
+  c_f1040_16_ws_d4: {s: 30452.75, jq: 60905.50, p: 30452.75, h: 32191.00}
+  c_f1040_16_ws_d5: {s: 42979.75, jq: 75937.50, p: 37968.75, h: 44718.00}
+
+  # Qualified Dividends and Capital Gain Tax Worksheet-Line 16
+  c_f1040_16_qdcgtw_6: {sp: 48350, jq: 96700, h: 64750}
+  c_f1040_16_qdcgtw_13: {s: 533400, p: 300000, jq: 600050, h: 566700}
+  c_f1040_16_qdcgtw_18_perc: {sjphq: 0.15}
+  c_f1040_16_qdcgtw_21_perc: {sjphq: 0.20}
+
+  # 1040 Schedule D Line 21 limit
+  c_f1040sd_21_lmt: {sjhq: -3000, p: -1500}
+
+c_filing_status:
+  # CA 540 Line 1 - 5 (Filing Status)
+  c_ca540_1: {s: 1, jphq: 0}
+  c_ca540_2: {j: 1, sphq: 0}
+  c_ca540_3: {p: 1, sjhq: 0}
+  c_ca540_4: {h: 1, sjpq: 0}
+  c_ca540_5: {q: 1, sjph: 0}
+
+  # CA 540 Line 7 - 10 (Exemptions)
+  c_ca540_7_mul: {sjphq: 153}
+  c_ca540_8_mul: {sjphq: 153}
+  c_ca540_9_mul: {sjphq: 153}
+  c_ca540_10_mul: {sjphq: 475}
+
+  # CA 540 Line 18: Your California standard deduction ...
+  # CA 540NR Line 30: ... your standard deduction shown below ...
+  c_ca540_18_sd: {sp: 5706, jhq: 11412}
+
+  # CA 540 Line 31: Tax Rate Schedule
+  c_ca540_31_trs_t1: {sp: 0, jq: 0, h: 0}
+  c_ca540_31_trs_t2: {sp: 11079, jq: 22158, h: 22173}
+  c_ca540_31_trs_t3: {sp: 26264, jq: 52528, h: 52530}
+  c_ca540_31_trs_t4: {sp: 41452, jq: 82904, h: 67716}
+  c_ca540_31_trs_t5: {sp: 57542, jq: 115084, h: 83805}
+  c_ca540_31_trs_t6: {sp: 72724, jq: 145448, h: 98990}
+  c_ca540_31_trs_t7: {sp: 371479, jq: 742958, h: 505208}
+  c_ca540_31_trs_t8: {sp: 445771, jq: 891542, h: 606251}
+  c_ca540_31_trs_t9: {sp: 742953, jq: 1485906, h: 1010417}
+  c_ca540_31_trs_a1: {sjphq: 0.010}
+  c_ca540_31_trs_a2: {sjphq: 0.020}
+  c_ca540_31_trs_a3: {sjphq: 0.040}
+  c_ca540_31_trs_a4: {sjphq: 0.060}
+  c_ca540_31_trs_a5: {sjphq: 0.080}
+  c_ca540_31_trs_a6: {sjphq: 0.093}
+  c_ca540_31_trs_a7: {sjphq: 0.103}
+  c_ca540_31_trs_a8: {sjphq: 0.113}
+  c_ca540_31_trs_a9: {sjphq: 0.123}
+  c_ca540_31_trs_b1: {sp: 0.00, jq: 0.00, h: 0.00}
+  c_ca540_31_trs_b2: {sp: 110.79, jq: 221.58, h: 221.73}
+  c_ca540_31_trs_b3: {sp: 414.49, jq: 828.98, h: 828.87}
+  c_ca540_31_trs_b4: {sp: 1022.01, jq: 2044.02, h: 1436.31}
+  c_ca540_31_trs_b5: {sp: 1987.41, jq: 3974.82, h: 2401.65}
+  c_ca540_31_trs_b6: {sp: 3201.97, jq: 6403.94, h: 3616.45}
+  c_ca540_31_trs_b7: {sp: 30986.19, jq: 61972.37, h: 41394.72}
+  c_ca540_31_trs_b8: {sp: 38638.27, jq: 77276.52, h: 51802.15}
+  c_ca540_31_trs_b9: {sp: 72219.84, jq: 144439.65, h: 97472.91}
+
+  # CA 540 Line 32: If your federal AGI is more than ...
+  # CA 540NR Line 29: Is your federal AGI (Form 540, line 13) more than ...
+  c_ca540_32_fed_agi: {sp: 252203, jq: 504411, h: 378310}
+
